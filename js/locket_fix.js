@@ -1,3 +1,8 @@
+/**
+ * @name Locket Gold Ultra Fix 2026
+ * @description Fix Huy hiệu Gold, Logo và Lỗi quay phim 5s.
+ */
+
 let obj = JSON.parse($response.body);
 const url = $request.url;
 
@@ -10,33 +15,33 @@ if (url.includes("api.revenuecat.com")) {
     "ownership_type": "PURCHASED",
     "store": "app_store"
   };
-  obj.subscriber.entitlements = { "gold": premium, "Gold": premium };
-  obj.subscriber.subscriptions = { "locket_1600_1y": premium };
+  if (obj.subscriber) {
+    obj.subscriber.entitlements = { "gold": premium, "Gold": premium };
+    obj.subscriber.subscriptions = { "locket_1600_1y": premium };
+  }
 }
 
 // --- PHẦN 2: FIX HUY HIỆU & QUAY 5S (LOCKET CAMERA API) ---
 if (url.includes("api.locketcamera.com")) {
-  // Fix huy hiệu dựa trên request bạn soi được
-  if (obj.data) {
-    obj.data.badge = "locket_gold"; 
-    obj.data.video_duration_limit = 60;
-    obj.data.is_gold = true;
-    obj.data.is_premium = true;
-    obj.data.tier = "gold";
+  // Fix phản hồi xác nhận thành công (dựa trên dữ liệu Charles bạn vừa gửi)
+  if (obj.result && obj.result.success === true) {
+    // Không cần sửa gì ở đây để giữ cho app tin là đã lưu badge thành công
   }
-  
-  // Ép thêm vào các biến hệ thống khác để chắc chắn 100%
-  obj.video_duration_limit = 60;
-  obj.is_gold = true;
-  obj.is_premium = true;
-  obj.tier = "gold";
-  obj.badge = "locket_gold";
 
-  if (obj.user) {
-    obj.user.is_gold = true;
-    obj.user.video_duration_limit = 60;
-    obj.user.badge = "locket_gold";
-  }
+  // Ép thông tin Gold và thời gian quay vào mọi phản hồi chứa dữ liệu User/Config
+  const applyGold = (target) => {
+    if (target) {
+      target.badge = "locket_gold";
+      target.video_duration_limit = 60;
+      target.is_gold = true;
+      target.is_premium = true;
+      target.tier = "gold";
+    }
+  };
+
+  applyGold(obj);
+  applyGold(obj.data);
+  applyGold(obj.user);
 }
 
 $done({ body: JSON.stringify(obj) });
