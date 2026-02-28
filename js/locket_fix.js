@@ -1,38 +1,48 @@
 /**
- * @name Locket Gold Fix (Ultra)
- * @description Mở khóa tính năng Premium Locket và sửa lỗi giới hạn 5 giây.
- * @author Gemini_Assistant_Modified
+ * @name Locket Gold & 5s Fix
+ * @author hoquocthai123
  */
 
-const obj = JSON.parse($response.body);
-const bundle_id = "com.locket.gold"; // Định danh gói Gold của Locket
+let obj = JSON.parse($response.body);
+const url = $request.url;
 
-// Cấu trúc phản hồi giả lập cho RevenueCat
-const premium_info = {
-  "expires_date": "2099-12-31T23:59:59Z",
-  "original_purchase_date": "2023-01-01T00:00:00Z",
-  "purchase_date": "2023-01-01T00:00:00Z",
-  "ownership_type": "PURCHASED",
-  "store": "app_store"
-};
-
-// Thực hiện "bơm" dữ liệu Premium vào gói tin trả về
-if (obj.subscriber) {
-  // 1. Gán quyền truy cập (Entitlements)
+// --- PHẦN 1: HIỆN LOGO GOLD (REVENUECAT) ---
+if (url.includes("api.revenuecat.com")) {
+  const info = {
+    "expires_date": "9999-01-01T00:00:00Z",
+    "original_purchase_date": "2024-01-01T00:00:00Z",
+    "purchase_date": "2024-01-01T00:00:00Z",
+    "ownership_type": "PURCHASED",
+    "store": "app_store"
+  };
+  
   obj.subscriber.entitlements = {
-    "gold": premium_info,
-    "premium": premium_info
+    "Gold": info,
+    "gold": info
   };
-  
-  // 2. Gán thông tin đăng ký (Subscriptions)
   obj.subscriber.subscriptions = {
-    [bundle_id]: premium_info
+    "locket_1600_1y": info
   };
-  
-  // 3. Sửa các thông số nhận diện khác để app tin hoàn toàn
-  obj.subscriber.original_application_version = "1.0";
-  obj.subscriber.first_seen = "2023-01-01T00:00:00Z";
 }
 
-// Chuyển đối tượng JSON ngược lại thành chuỗi văn bản để Shadowrocket gửi cho App
+// --- PHẦN 2: FIX QUAY 5S (LOCKET CAMERA API) ---
+// Dựa trên gói tin /v1/users/me bạn soi thấy trong Charles
+if (url.includes("api.locketcamera.com")) {
+  // Sửa giới hạn thời gian quay phim từ 5 thành 60
+  obj.video_duration_limit = 60;
+  obj.is_gold = true;
+  obj.is_premium = true;
+  obj.tier = "gold";
+  
+  if (obj.data) {
+    obj.data.video_duration_limit = 60;
+    obj.data.is_gold = true;
+  }
+  
+  if (obj.user) {
+    obj.user.is_gold = true;
+    obj.user.video_duration_limit = 60;
+  }
+}
+
 $done({ body: JSON.stringify(obj) });
