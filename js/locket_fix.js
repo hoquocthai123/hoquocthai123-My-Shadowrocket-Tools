@@ -1,7 +1,12 @@
+/**
+ * @name Locket Gold & Recording Fix 2026
+ * @description Fix lỗi 5 giây và mở khóa Gold dựa trên dữ liệu thực tế từ Charles.
+ */
+
 let obj = JSON.parse($response.body);
 const url = $request.url;
 
-// 1. Mở khóa Gold (Logo & Badge)
+// 1. Xử lý hiện Logo Gold và Badge (Qua hệ thống RevenueCat)
 if (url.includes("api.revenuecat.com")) {
   const premium = {
     "expires_date": "2099-12-31T23:59:59Z",
@@ -10,19 +15,36 @@ if (url.includes("api.revenuecat.com")) {
     "store": "app_store",
     "ownership_type": "PURCHASED"
   };
-  obj.subscriber.entitlements = { "gold": premium, "plus": premium };
-  obj.subscriber.subscriptions = { "com.locket.gold.yearly": premium };
+  
+  if (obj.subscriber) {
+    obj.subscriber.entitlements = {
+      "gold": premium,
+      "plus": premium,
+      "premium": premium
+    };
+    obj.subscriber.subscriptions = {
+      "com.locket.gold.yearly": premium,
+      "com.locket.gold.monthly": premium
+    };
+  }
 }
 
-// 2. Fix lỗi quay phim 5s (Tính năng thực tế)
+// 2. Xử lý tính năng quay phim 5s (Qua hệ thống Locket API)
 if (url.includes("api.locketcamera.com")) {
-  // Sửa trực tiếp ở cấp cao nhất của Object (không qua .data)
+  // Sửa trực tiếp giới hạn thời gian quay phim
+  if (obj.data) {
+    obj.data.video_duration_limit = 60;
+    obj.data.is_gold = true;
+    obj.data.is_premium = true;
+    obj.data.tier = "gold";
+  }
+  
+  // Một số bản Locket trả về thông tin user trực tiếp ở cấp cao nhất
   obj.video_duration_limit = 60;
   obj.is_gold = true;
   obj.is_premium = true;
   obj.tier = "gold";
   
-  // Nếu có object user bên trong, sửa luôn
   if (obj.user) {
     obj.user.is_gold = true;
     obj.user.video_duration_limit = 60;
