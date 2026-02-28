@@ -1,13 +1,10 @@
 #!name=Locket Gold Ultra Fix
-#!desc=Mở khóa Locket Gold và Fix lỗi quay phim 5s (2026).
+#!desc=Mở khóa Locket Gold và Fix lỗi quay phim 5s (Cập nhật 2026).
 #!author=Thái_Ho_Shadowrocket
 
 [Script]
-# Xử lý cả RevenueCat (hiện logo) và Locket API (fix 5s) bằng 1 file JS của bạn
-locket_premium = type=http-response, pattern=^https:\/\/api\.(revenuecat\.com|locketcamera\.com)\/.+, script-path=https://raw.githubusercontent.com/hoquocthai123/hoquocthai123-My-Shadowrocket-Tools/main/js/locket_fix.js, requires-body=true, timeout=60
-
-# YouTube Adblock
-youtube_premium = type=http-response, pattern=^https:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/(browse|next|player), script-path=https://raw.githubusercontent.com/Maasea/sgmodule/master/Script/Youtube/youtube.js, requires-body=true, timeout=60
+# Sử dụng 1 script duy nhất cho cả 2 hệ thống kiểm tra của Locket
+locket_all = type=http-response, pattern=^https:\/\/api\.(revenuecat\.com|locketcamera\.com)\/.+, script-path=https://raw.githubusercontent.com/hoquocthai123/hoquocthai123-My-Shadowrocket-Tools/main/js/locket_fix.js, requires-body=true, timeout=60
 
 [MITM]
-hostname = %APPEND% api.revenuecat.com, api.locketcamera.com, youtubei.googleapis.com, *.googlevideo.com
+hostname = %APPEND% api.revenuecat.com, api.locketcamera.com
